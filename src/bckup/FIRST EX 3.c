@@ -10,7 +10,7 @@
 #include "queue.h"
 #include "semphr.h"
 #include "task.h"
-#include "timers.h"
+
 #include "TUM_Ball.h"
 #include "TUM_Draw.h"
 #include "TUM_Event.h"
@@ -23,11 +23,10 @@
 // STATE MACHINE DEFS COPIED FROM THE MASTER DEMO 
 #define STATE_QUEUE_LENGTH 1
 
-#define STATE_COUNT 3
+#define STATE_COUNT 2
 
 #define STATE_ONE 0
 #define STATE_TWO 1
-#define STATE_THREE 2
 
 #define NEXT_TASK 0
 #define PREV_TASK 1
@@ -35,20 +34,7 @@
 #define STARTING_STATE STATE_ONE
 
 #define STATE_DEBOUNCE_DELAY 300
-static SemaphoreHandle_t Exercise4_23=NULL;
-static QueueHandle_t Exercise4Queue=NULL;
-static TaskHandle_t Exercise4_1=NULL;
-static TaskHandle_t Exercise4_2=NULL;
-static TaskHandle_t Exercise4_3=NULL;
-static TaskHandle_t Exercise4_4=NULL;
-static TaskHandle_t Exercise4=NULL;
 static TaskHandle_t LeftNumber = NULL;
-static TaskHandle_t RightNumber = NULL;
-static xTimerHandle Timer1 = NULL;
-static xTimerHandle Timer2 = NULL;
-static xTimerHandle Timer3 = NULL;
-static TaskHandle_t Exercise3SusRes=NULL;
-static SemaphoreHandle_t SusRes3;
 /* configSUPPORT_STATIC_ALLOCATION is set to 1, so the application must provide an
 implementation of vApplicationGetIdleTaskMemory() to provide the memory that is
 used by the Idle task. */
@@ -60,7 +46,6 @@ void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
 function then they must be declared static - otherwise they will be allocated on
 the stack and so not exists after this function exits. */
 static StaticTask_t xIdleTaskTCB;
-
 static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
 
     /* Pass out a pointer to the StaticTask_t structure in which the Idle task's
@@ -102,16 +87,10 @@ static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
     configTIMER_TASK_STACK_DEPTH is specified in words, not bytes. */
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
-typedef struct Exercise4Struct{
-    char TaskId;
-    TickType_t Timestamp; 
-}Exercise4Struct_t;
-Exercise4Struct_t Exercise4Struct; 
 typedef struct Exercise3VariableIncrementationStruct {
     int LeftNumber;
     int RightNumber;
     int Variable;
-    int Variable2;
     SemaphoreHandle_t lock;
 } Exercise3VariableIncrementationStruct_t;
 Exercise3VariableIncrementationStruct_t Exercise3VariableIncrementationStruct;
@@ -205,7 +184,6 @@ void changeState(volatile unsigned char *state, unsigned char forwards)
 /*
  * Example basic state machine with sequential states
  */
-
 void basicSequentialStateMachine(void *pvParameters)
 {
     unsigned char current_state = STARTING_STATE; // Default state
@@ -213,7 +191,7 @@ void basicSequentialStateMachine(void *pvParameters)
         1; // Only re-evaluate state if it has changed
     unsigned char input = 0;
 
-    const int state_change_period=STATE_DEBOUNCE_DELAY;
+    const int state_change_period = STATE_DEBOUNCE_DELAY;
 
     TickType_t last_change = xTaskGetTickCount();
 
@@ -241,29 +219,11 @@ initial_state:
                     if (Exercise3) {
                         vTaskSuspend(Exercise3);
                     }
-                    if (Exercise4) {
-                        vTaskSuspend(Exercise4);
-                    }
                     if (PositionIncrementationTask_Handle) {
                         vTaskResume(PositionIncrementationTask_Handle);
                     }
                     if (DrawingTask_Handle) {
                         vTaskResume(DrawingTask_Handle);
-                    }
-                    if (Exercise4_1){
-                        vTaskSuspend(Exercise4_1);
-                    }
-                    if (Exercise4_2){
-                        vTaskSuspend(Exercise4_2);
-                    }
-                    if (Exercise4_3){
-                        vTaskSuspend(Exercise4_3);
-                    }
-                    if (Exercise4_4){
-                        vTaskSuspend(Exercise4_4);
-                    }
-                    if (Exercise4){
-                        vTaskSuspend(Exercise4);
                     }
                     break;
                 case STATE_TWO:
@@ -273,74 +233,8 @@ initial_state:
                     if (PositionIncrementationTask_Handle) {
                         vTaskSuspend(PositionIncrementationTask_Handle);
                     }
-
                     if (Exercise3) {
                         vTaskResume(Exercise3);
-                    }
-                    if (Exercise3SusRes) {
-                        vTaskResume(Exercise3SusRes);
-                    }
-                    if (LeftNumber) {
-                        vTaskResume(LeftNumber);
-                    }
-                    if (RightNumber) {
-                        vTaskResume(RightNumber);
-                    }
-                    if (LeftCircleHandle) {
-                        vTaskResume(LeftCircleHandle);
-                    }
-                    if (RightCircleHandle) {
-                        vTaskResume(RightCircleHandle);
-                    }
-                    if (Exercise4_1){
-                        vTaskSuspend(Exercise4_1);
-                    }
-                    if (Exercise4_2){
-                        vTaskSuspend(Exercise4_2);
-                    }
-                    if (Exercise4_3){
-                        vTaskSuspend(Exercise4_3);
-                    }
-                    if (Exercise4_4){
-                        vTaskSuspend(Exercise4_4);
-                    }
-                    if (Exercise4){
-                        vTaskSuspend(Exercise4);
-                    }
-                    break;
-                case STATE_THREE:
-                    if (Exercise3) {
-                        vTaskSuspend(Exercise3);
-                    }
-                    if (Exercise3SusRes) {
-                        vTaskSuspend(Exercise3SusRes);
-                    }
-                    if (LeftNumber) {
-                        vTaskSuspend(LeftNumber);
-                    }
-                    if (RightNumber) {
-                        vTaskSuspend(RightNumber);
-                    }
-                    if (LeftCircleHandle) {
-                        vTaskSuspend(LeftCircleHandle);
-                    }
-                    if (RightCircleHandle) {
-                        vTaskSuspend(RightCircleHandle);
-                    }
-                    if (Exercise4) {
-                        vTaskResume(Exercise4);
-                    }
-                    if (Exercise4_1){
-                        vTaskResume(Exercise4_1);
-                    }
-                    if (Exercise4_2){
-                        vTaskResume(Exercise4_2);
-                    }
-                    if (Exercise4_3){
-                        vTaskResume(Exercise4_3);
-                    }
-                    if (Exercise4_4){
-                        vTaskResume(Exercise4_4);
                     }
                     break;
                 default:
@@ -452,63 +346,6 @@ void vDrawButtonText(int buttonPresses_A,
 
 }
 
-
-void vTimer1(TimerHandle_t xTimer){
-    if(xSemaphoreTake(Exercise3VariableIncrementationStruct.lock, portMAX_DELAY) == pdTRUE){
-    Exercise3VariableIncrementationStruct.Variable++;}
-    xSemaphoreGive(Exercise3VariableIncrementationStruct.lock); 
-}
-void vTimer2(TimerHandle_t xTimer){
-    if(xSemaphoreTake(Exercise3VariableIncrementationStruct.lock, portMAX_DELAY) == pdTRUE){
-    Exercise3VariableIncrementationStruct.LeftNumber=0;
-    Exercise3VariableIncrementationStruct.RightNumber=0;
-    }
-    xSemaphoreGive(Exercise3VariableIncrementationStruct.lock); 
-}
-void vTimer3(TimerHandle_t xTimer){
- xSemaphoreGive(SusRes3);
-}
-void vExercise3SusRes(void *pvParameters){
-    while(1){
-        if(xSemaphoreTake(SusRes3,portMAX_DELAY)==pdTRUE){ 
-            if(xSemaphoreTake(Exercise3VariableIncrementationStruct.lock, portMAX_DELAY) == pdTRUE){
-            Exercise3VariableIncrementationStruct.Variable2++;
-            }
-            xSemaphoreGive(Exercise3VariableIncrementationStruct.lock);
-        }
-        //xSemaphoreGive(SusRes3);
-    }
-}
-void vExercise3DrawButton()   
-{   int LeftNum =0;
-    int RightNum=0;
-    int Variable=0;
-    int Variable2=0;
-    static char str[100] = { 0 };
-    if(xSemaphoreTake(Exercise3VariableIncrementationStruct.lock, portMAX_DELAY) == pdTRUE){
-    LeftNum= Exercise3VariableIncrementationStruct.LeftNumber;
-    RightNum= Exercise3VariableIncrementationStruct.RightNumber;
-    Variable= Exercise3VariableIncrementationStruct.Variable;
-    Variable2=Exercise3VariableIncrementationStruct.Variable2;
-    xSemaphoreGive(Exercise3VariableIncrementationStruct.lock); 
-    }
-    sprintf(str, "Left Button: %d | Right Button: %d | Variable from timer : %d | Variable from Task Sus/Res: %d ",
-            LeftNum,
-            RightNum,
-            Variable,
-            Variable2);
-    checkDraw(tumDrawText(str, 10, DEFAULT_FONT_SIZE * 3, TUMBlue),
-                __FUNCTION__); 
-    sprintf(str, "Press Left and Right arrow keys to increment the variables");
-    checkDraw(tumDrawText(str, 10, 400, TUMBlue),
-                __FUNCTION__); 
-    sprintf(str, "To pause the timer incremented variable press T");
-    checkDraw(tumDrawText(str, 10, 415, TUMBlue),
-                __FUNCTION__); 
-    sprintf(str, "To pause the Task suspend/resume incremented variable press X");
-    checkDraw(tumDrawText(str, 10, 430, TUMBlue),
-                __FUNCTION__); 
-}
 /*  
  *   The Task that refreshes the screen at a constant frame rate
  */
@@ -679,21 +516,21 @@ void PositionIncrementation_Task(void *pvParameters){
             vCheckStateInput();
 
 }
-#define LBI 0x001
+#define LBI 0x01
 int debugvarr222 =0;
 void vLeftNumber(void *pvParameters){
 uint32_t NotificationBuffer;
     while(1){
         NotificationBuffer = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        if (NotificationBuffer & LBI){
-            if(xSemaphoreTake(Exercise3VariableIncrementationStruct.lock, portMAX_DELAY) == pdTRUE){
+        if (NotificationBuffer | LBI){
+            /*if(xSemaphoreTake(Exercise3VariableIncrementationStruct.lock, portMAX_DELAY) == pdTRUE){
                 Exercise3VariableIncrementationStruct.LeftNumber++;
-                xSemaphoreGive(Exercise3VariableIncrementationStruct.lock); debugvarr222++;
+                xSemaphoreGive(Exercise3VariableIncrementationStruct.lock);*/ debugvarr222++;
             }
         }
         
     }
-}
+//}
 void vRightNumber(void *pvParameters){
 
     while(1){
@@ -737,11 +574,7 @@ void vExercise3(void *pvParameters){
     uint32_t NotificationBuffer;
     bool RightCircleFlag = false;
     bool LeftCircleFlag = false;
-    xTimerStart(Timer1, 0);
-    xTimerStart(Timer2, 0);
-    xTimerStart(Timer3, 0);
-    bool timer3Flag =true;
-    bool timer1Flag = true;
+ 
     while (1)
     {
     tumEventFetchEvents(FETCH_EVENT_BLOCK |
@@ -767,27 +600,7 @@ void vExercise3(void *pvParameters){
                     if (RightCircleFlag){
                         tumDrawCircle(400,200,50,Blue);
                     }
-                    if (ButtonStateChangeCheck(KEYCODE(LEFT))==true){xTaskNotify(LeftNumber,LBI,eSetBits);}
-                    if (ButtonStateChangeCheck(KEYCODE(RIGHT))==true){xSemaphoreGive(RightButtonSignal);}
-                    if (ButtonStateChangeCheck(KEYCODE(T))==true){
-                        if(timer1Flag){
-                            xTimerStop(Timer1,0);
-                            timer1Flag=false;
-                        }else{
-                        timer1Flag=true;
-                        xTimerStart(Timer1,0);
-                        }
-                    }
-                    if (ButtonStateChangeCheck(KEYCODE(X))==true){
-                        if(timer1Flag){
-                            vTaskSuspend(Exercise3SusRes);
-                            timer1Flag=false;
-                        }else{
-                            timer1Flag=true;
-                            vTaskResume(Exercise3SusRes);
-                        }
-                    }     
-
+                    //if (ButtonStateChangeCheck(KEYCODE(V))==true){xTaskNotify(LeftNumber,LEFT_BUTTON_INCREMENT,eSetBits);}
                 vDrawFPS();                    
                 xSemaphoreGive(ScreenLock);
                     if (xSemaphoreTake(buttons.lock, 0) == pdTRUE) {
@@ -813,94 +626,7 @@ void vExercise3(void *pvParameters){
     //printf("Notification Buffer: 0x%x\n", NotificationBuffer);
     xSemaphoreGive(DrawSignal);
     debugVarrunningcheck++;
-    vExercise3DrawButton();
-    vCheckStateInput();
-    vTaskDelay(20);
-    }
-}
-void vExercise4_1(void * pvParameters){
-    Exercise4Struct_t Output;
-    TickType_t xLastWakeTime;
-    Output.TaskId='1';
-    while(1){
 
-        xLastWakeTime=xTaskGetTickCount();
-        Output.Timestamp= xLastWakeTime;
-        xQueueSend(Exercise4Queue,&Output,0);
-        vTaskDelayUntil(&xLastWakeTime,1);
-    }
-}
-void vExercise4_2(void * pvParameters){
-    Exercise4Struct_t Output;
-    TickType_t xLastWakeTime;
-    Output.TaskId='2';
-    while(1){
-
-        xLastWakeTime=xTaskGetTickCount();
-        Output.Timestamp= xLastWakeTime;
-        xQueueSend(Exercise4Queue,&Output,0);
-        xSemaphoreGive(Exercise4_23);
-        vTaskDelayUntil(&xLastWakeTime,2);
-    }
-}
-void vExercise4_3(void * pvParameters){
-    Exercise4Struct_t Output;
-    TickType_t xLastWakeTime;
-    Output.TaskId='3';
-    while(1){
-        xSemaphoreTake(Exercise4_23,portMAX_DELAY);
-        xLastWakeTime=xTaskGetTickCount();
-        Output.Timestamp= xLastWakeTime;
-        xQueueSend(Exercise4Queue,&Output,0);
-        vTaskDelayUntil(&xLastWakeTime,3);
-    }
-}
-void vExercise4_4(void * pvParameters){
-    Exercise4Struct_t Output;
-    TickType_t xLastWakeTime;
-    Output.TaskId='4';
-    while(1){
-
-        xLastWakeTime=xTaskGetTickCount();
-        Output.Timestamp= xLastWakeTime;
-        xQueueSend(Exercise4Queue,&Output,0);
-        vTaskDelayUntil(&xLastWakeTime,4);
-    }
-}
-void vExercise4(void *pvParameters){
-    Exercise4Struct_t Ex4StructBuffer;
-    char Ex4CharBuffer[15][100] ={0};
-    char str[100];
-    //We will block this task for 16 ticks up until the 15 ticks 
-    //of the Ex 4 tasks are run after that this task will suspend the others
-    TickType_t Ex4firstrun=xTaskGetTickCount();
-    vTaskDelayUntil(&Ex4firstrun,16);
-    vTaskSuspend(Exercise4_1);
-    vTaskSuspend(Exercise4_2);
-    vTaskSuspend(Exercise4_3);
-    vTaskSuspend(Exercise4_4);
-    while(1){
-    tumEventFetchEvents(FETCH_EVENT_BLOCK |
-                                FETCH_EVENT_NO_GL_CHECK);
-    xGetButtonInput(); // Update global input
-        if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
-                    pdTRUE) {            
-                    xSemaphoreTake(ScreenLock, portMAX_DELAY);
-                    tumDrawSetGlobalXOffset(0);
-                    tumDrawSetGlobalYOffset(0);
-                    tumDrawClear(White); // Clear screen
-        }
-    while (xQueueReceive(Exercise4Queue, &Ex4StructBuffer, 0) == pdTRUE){ 
-         strcat(Ex4CharBuffer[Ex4StructBuffer.Timestamp - Ex4firstrun +16], &Ex4StructBuffer.TaskId);
-    }
-    for (int i = 0; i < 15; i++){
-    sprintf(str, "At Tick: %d, Recieved:%s", i+1, Ex4CharBuffer[i]);
-    tumDrawText(str, 50, 50+20*i, TUMBlue);
-        }
-                    
-    vDrawFPS();                    
-    xSemaphoreGive(ScreenLock);
-    xSemaphoreGive(DrawSignal);
     vCheckStateInput();
     vTaskDelay(20);
     }
@@ -925,13 +651,12 @@ int main(int argc, char *argv[])
         PRINT_ERROR("Failed to initialize audio");
         goto err_init_audio;
     }
-    Exercise3VariableIncrementationStruct.lock = xSemaphoreCreateMutex();
+
     buttons.lock = xSemaphoreCreateMutex(); // Locking mechanism
     if (!buttons.lock) {
         PRINT_ERROR("Failed to create buttons lock");
-        goto err_buttons_lock;      
+        goto err_buttons_lock;
     }
-    Exercise4Queue =xQueueCreate(100,sizeof(Exercise4Struct_t));
     StateQueue = xQueueCreate(STATE_QUEUE_LENGTH, sizeof(unsigned char));
     if (!StateQueue) {
         PRINT_ERROR("Could not open state queue");
@@ -951,10 +676,6 @@ int main(int argc, char *argv[])
                 mainGENERIC_PRIORITY, &PositionIncrementationTask_Handle) != pdPASS) {
     goto err_demotask;
     }
-    if (xTaskCreate(vExercise4, "Exercise4", mainGENERIC_STACK_SIZE * 2, NULL,
-                mainGENERIC_PRIORITY, &Exercise4) != pdPASS) {
-    goto err_demotask;
-    }
     if (xTaskCreate(vExercise3, "Exercise 3 main task", mainGENERIC_STACK_SIZE * 2, NULL,
                 mainGENERIC_PRIORITY, &Exercise3) != pdPASS) {
     goto err_demotask;
@@ -970,21 +691,11 @@ int main(int argc, char *argv[])
                 mainGENERIC_PRIORITY+1, &LeftNumber) != pdPASS) {
     goto err_demotask;
     }
-    if (xTaskCreate(vRightNumber, "RightNumb Ex3", mainGENERIC_STACK_SIZE * 2, NULL,
-                mainGENERIC_PRIORITY+1, &RightNumber) != pdPASS) {
-    goto err_demotask;
-    }
-    if (xTaskCreate(vExercise3SusRes, "Ex 3Suspend resume timer", mainGENERIC_STACK_SIZE * 2, NULL,
-                mainGENERIC_PRIORITY+1, &Exercise3SusRes) != pdPASS) {
-    goto err_demotask;
-    }
-
     if (xTaskCreate(vSwapBuffers, "BufferSwapTask",
                     mainGENERIC_STACK_SIZE * 2, NULL, configMAX_PRIORITIES-1,
                     BufferSwap) != pdPASS) {
     }
-    Exercise4_23 = xSemaphoreCreateBinary();
-    SusRes3 = xSemaphoreCreateBinary();
+    
     DrawSignal = xSemaphoreCreateBinary(); // Screen buffer locking
     if (!DrawSignal) {
         PRINT_ERROR("Failed to create draw signal");
@@ -995,26 +706,6 @@ int main(int argc, char *argv[])
     }
     RightButtonSignal = xSemaphoreCreateBinary();
 
-    Timer1 = xTimerCreate("Ex 3 timer variable",pdMS_TO_TICKS(1000),pdTRUE,0,vTimer1);
-    Timer2 = xTimerCreate("Ex3 timer variable clearing",pdMS_TO_TICKS(15000),pdTRUE,0,vTimer2);
-    Timer3 = xTimerCreate("Ex3 timer variable with suspend",pdMS_TO_TICKS(1000),pdTRUE,0,vTimer3);
-
-    if (xTaskCreate(vExercise4_1, "Ex4_1", mainGENERIC_STACK_SIZE * 2, NULL,
-                1, &Exercise4_1) != pdPASS) {
-    goto err_demotask;
-    }
-    if (xTaskCreate(vExercise4_2, "Ex4_2", mainGENERIC_STACK_SIZE * 2, NULL,
-                2, &Exercise4_2) != pdPASS) {
-    goto err_demotask;
-    }
-    if (xTaskCreate(vExercise4_3, "Ex4_3", mainGENERIC_STACK_SIZE * 2, NULL,
-                3, &Exercise4_3) != pdPASS) {
-    goto err_demotask;
-    }
-    if (xTaskCreate(vExercise4_4, "Ex4_4", mainGENERIC_STACK_SIZE * 2, NULL,
-                4, &Exercise4_4) != pdPASS) {
-    goto err_demotask;
-    }
     vTaskStartScheduler();
 
     return EXIT_SUCCESS;

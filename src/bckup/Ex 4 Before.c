@@ -35,12 +35,7 @@
 #define STARTING_STATE STATE_ONE
 
 #define STATE_DEBOUNCE_DELAY 300
-static SemaphoreHandle_t Exercise4_23=NULL;
-static QueueHandle_t Exercise4Queue=NULL;
 static TaskHandle_t Exercise4_1=NULL;
-static TaskHandle_t Exercise4_2=NULL;
-static TaskHandle_t Exercise4_3=NULL;
-static TaskHandle_t Exercise4_4=NULL;
 static TaskHandle_t Exercise4=NULL;
 static TaskHandle_t LeftNumber = NULL;
 static TaskHandle_t RightNumber = NULL;
@@ -102,11 +97,6 @@ static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
     configTIMER_TASK_STACK_DEPTH is specified in words, not bytes. */
     *pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
 }
-typedef struct Exercise4Struct{
-    char TaskId;
-    TickType_t Timestamp; 
-}Exercise4Struct_t;
-Exercise4Struct_t Exercise4Struct; 
 typedef struct Exercise3VariableIncrementationStruct {
     int LeftNumber;
     int RightNumber;
@@ -213,7 +203,7 @@ void basicSequentialStateMachine(void *pvParameters)
         1; // Only re-evaluate state if it has changed
     unsigned char input = 0;
 
-    const int state_change_period=STATE_DEBOUNCE_DELAY;
+    const int state_change_period = STATE_DEBOUNCE_DELAY;
 
     TickType_t last_change = xTaskGetTickCount();
 
@@ -250,21 +240,6 @@ initial_state:
                     if (DrawingTask_Handle) {
                         vTaskResume(DrawingTask_Handle);
                     }
-                    if (Exercise4_1){
-                        vTaskSuspend(Exercise4_1);
-                    }
-                    if (Exercise4_2){
-                        vTaskSuspend(Exercise4_2);
-                    }
-                    if (Exercise4_3){
-                        vTaskSuspend(Exercise4_3);
-                    }
-                    if (Exercise4_4){
-                        vTaskSuspend(Exercise4_4);
-                    }
-                    if (Exercise4){
-                        vTaskSuspend(Exercise4);
-                    }
                     break;
                 case STATE_TWO:
                     if (DrawingTask_Handle) {
@@ -276,36 +251,6 @@ initial_state:
 
                     if (Exercise3) {
                         vTaskResume(Exercise3);
-                    }
-                    if (Exercise3SusRes) {
-                        vTaskResume(Exercise3SusRes);
-                    }
-                    if (LeftNumber) {
-                        vTaskResume(LeftNumber);
-                    }
-                    if (RightNumber) {
-                        vTaskResume(RightNumber);
-                    }
-                    if (LeftCircleHandle) {
-                        vTaskResume(LeftCircleHandle);
-                    }
-                    if (RightCircleHandle) {
-                        vTaskResume(RightCircleHandle);
-                    }
-                    if (Exercise4_1){
-                        vTaskSuspend(Exercise4_1);
-                    }
-                    if (Exercise4_2){
-                        vTaskSuspend(Exercise4_2);
-                    }
-                    if (Exercise4_3){
-                        vTaskSuspend(Exercise4_3);
-                    }
-                    if (Exercise4_4){
-                        vTaskSuspend(Exercise4_4);
-                    }
-                    if (Exercise4){
-                        vTaskSuspend(Exercise4);
                     }
                     break;
                 case STATE_THREE:
@@ -329,18 +274,6 @@ initial_state:
                     }
                     if (Exercise4) {
                         vTaskResume(Exercise4);
-                    }
-                    if (Exercise4_1){
-                        vTaskResume(Exercise4_1);
-                    }
-                    if (Exercise4_2){
-                        vTaskResume(Exercise4_2);
-                    }
-                    if (Exercise4_3){
-                        vTaskResume(Exercise4_3);
-                    }
-                    if (Exercise4_4){
-                        vTaskResume(Exercise4_4);
                     }
                     break;
                 default:
@@ -819,85 +752,24 @@ void vExercise3(void *pvParameters){
     }
 }
 void vExercise4_1(void * pvParameters){
-    Exercise4Struct_t Output;
-    TickType_t xLastWakeTime;
-    Output.TaskId='1';
     while(1){
 
-        xLastWakeTime=xTaskGetTickCount();
-        Output.Timestamp= xLastWakeTime;
-        xQueueSend(Exercise4Queue,&Output,0);
-        vTaskDelayUntil(&xLastWakeTime,1);
-    }
-}
-void vExercise4_2(void * pvParameters){
-    Exercise4Struct_t Output;
-    TickType_t xLastWakeTime;
-    Output.TaskId='2';
-    while(1){
-
-        xLastWakeTime=xTaskGetTickCount();
-        Output.Timestamp= xLastWakeTime;
-        xQueueSend(Exercise4Queue,&Output,0);
-        xSemaphoreGive(Exercise4_23);
-        vTaskDelayUntil(&xLastWakeTime,2);
-    }
-}
-void vExercise4_3(void * pvParameters){
-    Exercise4Struct_t Output;
-    TickType_t xLastWakeTime;
-    Output.TaskId='3';
-    while(1){
-        xSemaphoreTake(Exercise4_23,portMAX_DELAY);
-        xLastWakeTime=xTaskGetTickCount();
-        Output.Timestamp= xLastWakeTime;
-        xQueueSend(Exercise4Queue,&Output,0);
-        vTaskDelayUntil(&xLastWakeTime,3);
-    }
-}
-void vExercise4_4(void * pvParameters){
-    Exercise4Struct_t Output;
-    TickType_t xLastWakeTime;
-    Output.TaskId='4';
-    while(1){
-
-        xLastWakeTime=xTaskGetTickCount();
-        Output.Timestamp= xLastWakeTime;
-        xQueueSend(Exercise4Queue,&Output,0);
-        vTaskDelayUntil(&xLastWakeTime,4);
     }
 }
 void vExercise4(void *pvParameters){
-    Exercise4Struct_t Ex4StructBuffer;
-    char Ex4CharBuffer[15][100] ={0};
-    char str[100];
-    //We will block this task for 16 ticks up until the 15 ticks 
-    //of the Ex 4 tasks are run after that this task will suspend the others
-    TickType_t Ex4firstrun=xTaskGetTickCount();
-    vTaskDelayUntil(&Ex4firstrun,16);
-    vTaskSuspend(Exercise4_1);
-    vTaskSuspend(Exercise4_2);
-    vTaskSuspend(Exercise4_3);
-    vTaskSuspend(Exercise4_4);
+    uint32_t NotificationBuffer;
     while(1){
     tumEventFetchEvents(FETCH_EVENT_BLOCK |
                                 FETCH_EVENT_NO_GL_CHECK);
     xGetButtonInput(); // Update global input
+    NotificationBuffer = ulTaskNotifyTake(pdTRUE, 0);    //Recieve whatever is in the queue and clear it    
         if (xSemaphoreTake(DrawSignal, portMAX_DELAY) ==
                     pdTRUE) {            
                     xSemaphoreTake(ScreenLock, portMAX_DELAY);
                     tumDrawSetGlobalXOffset(0);
                     tumDrawSetGlobalYOffset(0);
-                    tumDrawClear(White); // Clear screen
+                    tumDrawClear(Pink); // Clear screen
         }
-    while (xQueueReceive(Exercise4Queue, &Ex4StructBuffer, 0) == pdTRUE){ 
-         strcat(Ex4CharBuffer[Ex4StructBuffer.Timestamp - Ex4firstrun +16], &Ex4StructBuffer.TaskId);
-    }
-    for (int i = 0; i < 15; i++){
-    sprintf(str, "At Tick: %d, Recieved:%s", i+1, Ex4CharBuffer[i]);
-    tumDrawText(str, 50, 50+20*i, TUMBlue);
-        }
-                    
     vDrawFPS();                    
     xSemaphoreGive(ScreenLock);
     xSemaphoreGive(DrawSignal);
@@ -931,7 +803,6 @@ int main(int argc, char *argv[])
         PRINT_ERROR("Failed to create buttons lock");
         goto err_buttons_lock;      
     }
-    Exercise4Queue =xQueueCreate(100,sizeof(Exercise4Struct_t));
     StateQueue = xQueueCreate(STATE_QUEUE_LENGTH, sizeof(unsigned char));
     if (!StateQueue) {
         PRINT_ERROR("Could not open state queue");
@@ -983,7 +854,6 @@ int main(int argc, char *argv[])
                     mainGENERIC_STACK_SIZE * 2, NULL, configMAX_PRIORITIES-1,
                     BufferSwap) != pdPASS) {
     }
-    Exercise4_23 = xSemaphoreCreateBinary();
     SusRes3 = xSemaphoreCreateBinary();
     DrawSignal = xSemaphoreCreateBinary(); // Screen buffer locking
     if (!DrawSignal) {
@@ -998,23 +868,6 @@ int main(int argc, char *argv[])
     Timer1 = xTimerCreate("Ex 3 timer variable",pdMS_TO_TICKS(1000),pdTRUE,0,vTimer1);
     Timer2 = xTimerCreate("Ex3 timer variable clearing",pdMS_TO_TICKS(15000),pdTRUE,0,vTimer2);
     Timer3 = xTimerCreate("Ex3 timer variable with suspend",pdMS_TO_TICKS(1000),pdTRUE,0,vTimer3);
-
-    if (xTaskCreate(vExercise4_1, "Ex4_1", mainGENERIC_STACK_SIZE * 2, NULL,
-                1, &Exercise4_1) != pdPASS) {
-    goto err_demotask;
-    }
-    if (xTaskCreate(vExercise4_2, "Ex4_2", mainGENERIC_STACK_SIZE * 2, NULL,
-                2, &Exercise4_2) != pdPASS) {
-    goto err_demotask;
-    }
-    if (xTaskCreate(vExercise4_3, "Ex4_3", mainGENERIC_STACK_SIZE * 2, NULL,
-                3, &Exercise4_3) != pdPASS) {
-    goto err_demotask;
-    }
-    if (xTaskCreate(vExercise4_4, "Ex4_4", mainGENERIC_STACK_SIZE * 2, NULL,
-                4, &Exercise4_4) != pdPASS) {
-    goto err_demotask;
-    }
     vTaskStartScheduler();
 
     return EXIT_SUCCESS;
