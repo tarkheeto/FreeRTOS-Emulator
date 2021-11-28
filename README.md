@@ -5,7 +5,7 @@ The skeleton that I had built the solutions to the exercises on was the Demo Cle
 
   In exercise two there are mainly two tasks, the first task does the drawing and the second increments a variable (equivalent to an angle used by sin/cos operators for the rotational motion). Pressing on A,B,C or D will increment an on screen counter and pressing on the left mouse button will reset it. In this exercise and in all the others pressing E will change the state of an FSM Machine ( the code of which was taken from the Master Demo ( along with alot of code parts tbh such as the framerate)).
 
-For the moving text; the text takes in the horizontal part of the rotation of the circle. 
+For the moving text; the text takes in the horizontal component of the rotation of the circle. 
 
 # Exercise 3: 
 
